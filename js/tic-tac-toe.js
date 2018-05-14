@@ -54,13 +54,8 @@
         getIsWin: function(grid) {
             for (let i = 0; i < Game.wins.length; i++) {
                 let win = Game.wins[i];
-                console.log("Checking win: " + win);
                 var [a, b, c] = win;
                 if (grid[a] && grid[a] === grid[b] && grid[a] === grid[c]) {
-                    console.log("Grid A: " + grid[a]);
-                    console.log("Grid B: " + grid[b]);
-                    console.log("Grid C: " + grid[c]);
-                    console.log("Achieving win: " + win);
                     return true;
                 }
             }
@@ -108,19 +103,36 @@
             }
 
             // If it's possible to win the game in one move, do so
-            for (let i = 0; i < moves.length; i++) {
-                var squareToMove = moves[i];
-                var nextMoveGrid = Game.squares.slice();
-                nextMoveGrid[squareToMove] = Game.getPlayerName();
-                if (Game.getIsWin(nextMoveGrid)) {
-                    return squareToMove;
-                }
+            var winningMove = Game.getWinningMove(moves, "O");
+            if (winningMove) {
+                return winningMove;
+            }
+
+            // Otherwise, if the human player is close to winning, prevent them from winning
+            var blockingMove = Game.getWinningMove(moves, "X")
+            if (blockingMove) {
+                console.log("Blocking move found");
+                return blockingMove;
             }
 
             // Otherwise, randomly pick a square to move to
             var randomIndex = Math.floor(Math.random() * moves.length);
-            console.log("Random index: " + randomIndex);
             return moves[randomIndex];
+        },
+        // If it's possible for playerName to win the game in one move, return that move
+        getWinningMove: function(moves, playerName) {
+            console.log("Getting winning move for " + playerName);
+            for (let i = 0; i < moves.length; i++) {
+                var squareToMove = moves[i];
+                console.log("Checking to see if square " + squareToMove + " will win the game");
+                var nextMoveGrid = Game.squares.slice();
+                nextMoveGrid[squareToMove] = playerName;
+                if (Game.getIsWin(nextMoveGrid)) {
+                    console.log("Player can win in 1 move.")
+                    return squareToMove;
+                }
+            }
+            return null
         },
         // Updates the UI if the game if is over.
         // Returns true if the game is over; false otherwise

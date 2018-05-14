@@ -1,8 +1,9 @@
 (function($) {
     'use strict';
 
-    // Game state
+    // Game object to keep track of Tic-Tac-Toe state
     var Game = {
+        // Initialize object and define the HTML entities for the game
         init: function() {
             Game.config = {
                 buttons: $("#board button"),
@@ -11,14 +12,16 @@
             };
             Game.setup();
         },
+        // Bind click handlers
         setup: function() {
             Game.config.buttons.click(Game.clickSquare);
             Game.config.restart.click(Game.restart);
         },
-        // Keep track of the grid
+        // Keep track of the 3x3 grid
         squares: [null, null, null, null, null, null, null, null, null],
         // Keep track of whose turn it is
         xIsNext: true,
+        // Keep track of all possible winning combinations
         wins: [
             // rows
             [0, 1, 2],
@@ -32,7 +35,7 @@
             [0, 4, 8],
             [2, 4, 6]
         ],
-        // Get the name of the active player
+        // Get the name of the active player (X or O)
         getPlayerName: function() {
             if (this.xIsNext) {
                 return "X";
@@ -40,16 +43,28 @@
                 return "O";
             }
         },
-        // Get the name of the winner
+        // Get the name of the winning player
         getWinnerName: function() {
-            for (let i = 0; i < Game.wins.length; i++) {
-                let win = Game.wins[i];
-                var [a, b, c] = win;
-                if (Game.squares[a] && Game.squares[a] === Game.squares[b] && Game.squares[a] === Game.squares[c]) {
-                    return Game.squares[a];
-                }
+            if (Game.getIsWin(Game.squares)) {
+                return Game.getPlayerName();
             }
             return null;
+        },
+        // Taking a hypothetical grid, return true if a player is winning, false otherwise
+        getIsWin: function(grid) {
+            for (let i = 0; i < Game.wins.length; i++) {
+                let win = Game.wins[i];
+                console.log("Checking win: " + win);
+                var [a, b, c] = win;
+                if (grid[a] && grid[a] === grid[b] && grid[a] === grid[c]) {
+                    console.log("Grid A: " + grid[a]);
+                    console.log("Grid B: " + grid[b]);
+                    console.log("Grid C: " + grid[c]);
+                    console.log("Achieving win: " + win);
+                    return true;
+                }
+            }
+            return false;
         },
         // Return true if it's a draw; false otherwise
         getIsDraw: function() {
@@ -77,9 +92,9 @@
         // Simulate the active player clicks the square at the given index
         moveToIndex: function(index) {
             Game.squares[index] = Game.getPlayerName();
-            Game.xIsNext = !Game.xIsNext;
         },
-        // Get the next move for the AI player
+        // Randomly pick a valid square for the AI player to move into
+        // Randomization means that the AI will ignore winning combinations; but will not always draw
         getNextMove: function() {
             var moves = [];
             for (let i = 0; i < Game.squares.length; i++) {
@@ -88,18 +103,27 @@
                 }
             }
 
-            console.log("Available moves:" + moves);
-            console.log("Available moves length: " + moves.length);
-
             if (moves.length === 0) {
                 return -1;
             }
 
-            // Randomly pick a square to move to
+            // If it's possible to win the game in one move, do so
+            for (let i = 0; i < moves.length; i++) {
+                var squareToMove = moves[i];
+                var nextMoveGrid = Game.squares.slice();
+                nextMoveGrid[squareToMove] = Game.getPlayerName();
+                if (Game.getIsWin(nextMoveGrid)) {
+                    return squareToMove;
+                }
+            }
+
+            // Otherwise, randomly pick a square to move to
             var randomIndex = Math.floor(Math.random() * moves.length);
             console.log("Random index: " + randomIndex);
             return moves[randomIndex];
         },
+        // Updates the UI if the game if is over.
+        // Returns true if the game is over; false otherwise
         handleGameOver: function() {
             // check for a winner
             if (Game.getWinnerName()) {
@@ -118,9 +142,11 @@
                 return false;
             }
         },
+        // Disable all buttons in the grid
         disableUI: function() {
             Game.config.buttons.prop("disabled", true);
         },
+        // Enable all buttons in the grid=
         enableUI: function() {
             Game.config.buttons.prop("disabled", false);
         },
@@ -139,26 +165,31 @@
             square.text(Game.getPlayerName());
             Game.moveToIndex(i);
             if (Game.handleGameOver()) {
+                // The human player won, or all 9 squares have been filled
                 return;
             }
 
+            // change to AI player
+            Game.xIsNext = false;
             Game.disableUI();
             // Add a slight delay
-            setTimeout(
-              function()
-              {
-                // AI Player Moves Next
+            setTimeout(function() {
+                // Wait a few seconds, then the AI player takes a turn
                 var aiMove = Game.getNextMove();
                 if (aiMove !== -1) {
-                    console.log("Next Move: " + aiMove);
+                    // Updates the grid
                     $(Game.config.buttons.get(aiMove)).text(Game.getPlayerName());
+                    // Updates the game state
                     Game.moveToIndex(aiMove);
+                    // Check for game over
                     if (Game.handleGameOver() == false) {
+                        // If game is still in progress, human player gets another move
                         Game.enableUI();
+                        // change to human player
+                        Game.xIsNext = true;
                     }
                 }
-              }, 500);
-            
+            }, 500);
         }
     };
 

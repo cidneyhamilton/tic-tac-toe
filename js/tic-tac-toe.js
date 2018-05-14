@@ -70,7 +70,7 @@
             Game.xIsNext = true;
 
             // Update the UI
-            Game.config.buttons.prop("disabled", false);
+            Game.enableUI();
             Game.config.buttons.text("");
             Game.config.gameInfo.text("");
         },
@@ -104,15 +104,25 @@
             // check for a winner
             if (Game.getWinnerName()) {
                 // Update the UI; player won the game!
-                Game.config.buttons.prop("disabled", true);
+                Game.disableUI();
                 Game.config.gameInfo.text("Player " + Game.getWinnerName() + " won!");
+                return true;
             }
-
-            if (Game.getIsDraw()) {
+            else if (Game.getIsDraw()) {
                 // Update the UI; it's a draw!
-                Game.config.buttons.prop("disabled", true);
+                Game.disableUI();
                 Game.config.gameInfo.text("It's a draw!");
+                return true;
+            } else {
+                // game not over
+                return false;
             }
+        },
+        disableUI: function() {
+            Game.config.buttons.prop("disabled", true);
+        },
+        enableUI: function() {
+            Game.config.buttons.prop("disabled", false);
         },
         // Handle click events on a square in the grid
         clickSquare: function() {
@@ -128,8 +138,12 @@
             let i = Game.config.buttons.index(square);
             square.text(Game.getPlayerName());
             Game.moveToIndex(i);
-            Game.handleGameOver();
+            if (Game.handleGameOver()) {
+                return;
+            }
 
+            Game.disableUI();
+            // Add a slight delay
             setTimeout(
               function()
               {
@@ -139,12 +153,12 @@
                     console.log("Next Move: " + aiMove);
                     $(Game.config.buttons.get(aiMove)).text(Game.getPlayerName());
                     Game.moveToIndex(aiMove);
-                    Game.handleGameOver();
+                    if (Game.handleGameOver() == false) {
+                        Game.enableUI();
+                    }
                 }
-              }, 5);
-
-
-
+              }, 500);
+            
         }
     };
 

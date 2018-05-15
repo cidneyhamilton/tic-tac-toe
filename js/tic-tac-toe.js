@@ -53,9 +53,8 @@
         // Taking a hypothetical grid, return true if a player is winning, false otherwise
         getIsWin: function(grid) {
             for (let i = 0; i < Game.wins.length; i++) {
-                let win = Game.wins[i];
-                var [a, b, c] = win;
-                if (grid[a] && grid[a] === grid[b] && grid[a] === grid[c]) {
+                let [a, b, c]  = Game.wins[i];
+                if (grid[a] !== null && grid[a] === grid[b] && grid[a] === grid[c]) {
                     return true;
                 }
             }
@@ -88,8 +87,7 @@
         moveToIndex: function(index) {
             Game.squares[index] = Game.getPlayerName();
         },
-        // Randomly pick a valid square for the AI player to move into
-        // Randomization means that the AI will ignore winning combinations; but will not always draw
+        // Pick a valid square for the AI player to move into
         getNextMove: function() {
             var moves = [];
             for (let i = 0; i < Game.squares.length; i++) {
@@ -104,13 +102,13 @@
 
             // If it's possible to win the game in one move, do so
             var winningMove = Game.getWinningMove(moves, "O");
-            if (winningMove) {
+            if (winningMove !== null) {
                 return winningMove;
             }
 
             // Otherwise, if the human player is close to winning, prevent them from winning
             var blockingMove = Game.getWinningMove(moves, "X")
-            if (blockingMove) {
+            if (blockingMove !== null) {
                 return blockingMove;
             }
 
@@ -118,7 +116,7 @@
             var randomIndex = Math.floor(Math.random() * moves.length);
             return moves[randomIndex];
         },
-        // If it's possible for playerName to win the game in one move, return that move
+        // If it's possible for playerName to win the game in one move, return the index of that move
         getWinningMove: function(moves, playerName) {
             for (let i = 0; i < moves.length; i++) {
                 var squareToMove = moves[i];

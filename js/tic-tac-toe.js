@@ -111,7 +111,6 @@
             // Otherwise, if the human player is close to winning, prevent them from winning
             var blockingMove = Game.getWinningMove(moves, "X")
             if (blockingMove) {
-                console.log("Blocking move found");
                 return blockingMove;
             }
 
@@ -121,14 +120,11 @@
         },
         // If it's possible for playerName to win the game in one move, return that move
         getWinningMove: function(moves, playerName) {
-            console.log("Getting winning move for " + playerName);
             for (let i = 0; i < moves.length; i++) {
                 var squareToMove = moves[i];
-                console.log("Checking to see if square " + squareToMove + " will win the game");
                 var nextMoveGrid = Game.squares.slice();
                 nextMoveGrid[squareToMove] = playerName;
                 if (Game.getIsWin(nextMoveGrid)) {
-                    console.log("Player can win in 1 move.")
                     return squareToMove;
                 }
             }
@@ -150,7 +146,7 @@
                 Game.config.gameInfo.text("It's a draw!");
                 return true;
             } else {
-                // game not over
+                // The game isn't over.
                 return false;
             }
         },
@@ -169,10 +165,12 @@
                 // Can't write in a filled square!
                 return;
             }
+
             if (Game.getWinnerName()) {
                 // If there's already a winner, do nothing!
                 return;
             }
+
             let i = Game.config.buttons.index(square);
             square.text(Game.getPlayerName());
             Game.moveToIndex(i);
